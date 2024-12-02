@@ -1,0 +1,131 @@
+const express = require('express');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const User = require('./models/User');
+const authMiddleware = require('./middlewares/authMiddleware');
+require('dotenv').config();
+
+const router = express.Router();
+
+// Register route
+router.post('/register', async (request, response) => {
+    try {
+        const { name, username, email, password, userType } = request.body;
+
+        // Check if the name already exists
+        const existingName = await User.findOne({ name });
+        if (existingName) {
+            return response.status(400).json({ message: "Name already exists" });
+        }
+
+        // Check if the user already exists
+        const existingUser = await User.findOne({ username });
+        if (existingUser) {
+            return response.status(400).json({ message: "Username already exists" });
+        }
+
+        const existingEmail = await User.findOne({ email });
+        if (existingEmail) {
+            return response.status(400).json({ message: "Email already exists" });
+        }
+
+        // Hash the password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Create a new user
+        const newUser = new User({
+            name,
+            username,
+            email,
+            password: hashedPassword,
+            userType
+        });
+
+        // Save the user
+        await newUser.save();
+        response.status(201).json({ message: "User registered successfully" });
+    } catch (error) {
+        response.status(500).json({ message: error.message });
+    }
+
+});
+
+// Login route
+router.post('/login', async (request, response) => {
+
+        const { username, password }  = request.body;
+
+    try {
+
+        // Check if the user exists
+        const user = await User.findOne({ username });
+        if (!user) {
+            return response.status(400).json({ message: "Invalid Username" });
+        }
+
+        // Compare the password
+        const isMatch = await bcrypt.compare(user.password, password);
+        if (!isMatch) {
+            return response.status(400).json({ message: "Invalid Password" });
+        }
+        
+        // Generate a token
+        const token = jwt.sign(
+            { id: user._id, username: user.username},
+            process.env.JWT_SECRET
+          );
+
+        response.json({ token });
+    } catch (error) {
+        response.status(500).json({ message: error.message });
+    }
+});
+
+
+
+// Get user info by username
+router.get('/:username', authMiddleware, async (request, response) => {
+    try {
+        const user = await User.findOne({ username: request.params.username }).select('-password');
+        if (!user) {
+            return response.status(404).json({ message: "User not found" });
+        }
+
+        response.status(200).json(user);
+    } catch (error) {
+        response.status(500).json({ message: error.message });
+    }
+});
+
+// Route to update user profile
+router.put('/edit-profile', authMiddleware, async (req, res) => {
+    try {
+        const userId = req.user.userId;
+
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            req.body,
+            { new: true, runValidators: true }
+        ).select('-password');
+
+        if (!updatedUser) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        res.status(200).json({message:"Profile updated successfully"});
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+router.get('/', async (request, response) => {
+    try {
+        const students = await User.find({ userType: "Student" });
+        response.status(200).json(students);
+    } catch (error) {
+        response.status(500).json({ message: error.message });
+    }
+});
+
+
+module.exports = router;
