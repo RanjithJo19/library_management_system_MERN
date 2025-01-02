@@ -4,6 +4,12 @@ const bookSchema = {
 
     name: {
         type: String,
+        unique: true,
+        required: true
+    },
+    bookId: {
+        type: Number,
+        unique: true,
         required: true
     },
     author: {
@@ -16,7 +22,7 @@ const bookSchema = {
     },
     image: {
         type: String,
-        required: true
+        required: false
     },
     quantity: {
         type: Number,
@@ -24,7 +30,7 @@ const bookSchema = {
     },
     category: {
         type: String,
-        enum: ['Biographies', 'Short stories', 'Plays', 'Mystery', 'War'],
+        enum: ['Biographies', 'Short stories', 'Plays', 'Mystery', 'War', 'Poem'],
         required: true
     }
 

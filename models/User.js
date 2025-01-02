@@ -4,29 +4,43 @@ const userSchema = {
 
     name: {
         type: String,
-        required: true
+        required: [true],
     },
     username: {
         type: String,
-        required: true,
+        required: [true],
         unique: true
     },
     email: {
         type: String,
-        required: true,
+        required: [true],
         unique: true
     },
     password: {
         type: String,
-        required: true
+        required: [true],
     },
     userType: {
         type: String,
         enum: ['Student', 'Librarian'],
-        required: true
+        default: 'Student',
+        required: false
+    },
+    BooKCount: {
+        type: Number,
+        default: 0,
+    },
+    fineAmount: {
+        type: Number,
+        default: 0,
+        required: false
+    },
+    points: {
+        type: Number,
+        default: 0,
     }
+  }
 
-}
 
 const User = new mongoose.model("User", userSchema);
 

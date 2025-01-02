@@ -2,16 +2,12 @@ const mongoose = require('mongoose');
 
 const issuedBookSchema = {
 
-    studentId: {
-        type: String,
-        required: true
-    },
-    studentName: {
+    username: {
         type: String,
         required: true
     },
     bookId: {
-        type: String,
+        type: Number,
         required: true
     },
     bookName: {
@@ -19,20 +15,31 @@ const issuedBookSchema = {
         required: true
     },
     issuedDate: {
-        type: String,
-        required: true
+        type: Date,
+        required: false,
+        default: Date.now(),
     },
     returnDate: {
-        type: String,
-        required: true
+        type: Date,
+        required: false,
+        default: Date.now() + 7*24*60*60*1000,
+    },
+    userBookCount: {
+        type: Number,
+        required: false
+    },
+    fineAmount: {
+        type: Number,
+        default: 0,
+        required: false
     },
     status: {
         type: String,
-        enum: ['Pending', 'Returned'],
-        required: true
+        enum: ['Issued', 'Returned', 'Approved', 'Request'],
+        required: false
     }
 
-}
+};
 
 const IssuedBook = new mongoose.model("IssuedBook", issuedBookSchema);
 
